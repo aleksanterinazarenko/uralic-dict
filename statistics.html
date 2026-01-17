@@ -2,430 +2,609 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8" />
-  <meta name="description" content="Statistics - Open Dictionary of Uralic languages">
-  <meta name="viewport"
-    content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover">
-  <title>Statistics - Open Dictionary of Uralic languages</title>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 20px;
-      background-color: #f5f5f5;
-    }
+    <meta charset="UTF-8" />
+    <meta name="description" content="Statistics - Open Dictionary of Uralic languages">
+    <meta name="keywords" content="Uralic languages, statistics, dictionary statistics, language data">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, viewport-fit=cover">
+    <title>Statistics - Open Dictionary of Uralic languages</title>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      background: white;
-      padding: 20px;
-      border-radius: 8px;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
+        .back-link {
+            display: inline-block;
+            color: #333;
+            text-decoration: none;
+            font-size: 1rem;
+        }
 
-    h1 {
-      color: #333;
-      border-bottom: 2px solid #1976D2;
-      padding-bottom: 10px;
-      margin-bottom: 20px;
-    }
+        .stats-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 40px;
+        }
 
-    h1 a {
-      color: inherit;
-      text-decoration: none;
-    }
+        .stat-card {
+            flex: 1;
+            min-width: 150px;
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
 
-    h2 {
-      color: #444;
-      margin: 30px 0 15px 0;
-      padding-bottom: 8px;
-      border-bottom: 1px solid #ddd;
-    }
+        .stat-number {
+            font-size: 2.2em;
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 8px;
+        }
 
-    .back-link {
-      display: inline-block;
-      margin-bottom: 20px;
-      color: #1976D2;
-      text-decoration: none;
-    }
+        .stat-label {
+            color: #666;
+            font-size: 0.9em;
+        }
 
-    .back-link:hover {
-      text-decoration: underline;
-    }
+        .directions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+            margin-bottom: 40px;
+        }
 
-    .stats-container {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 20px;
-      margin-bottom: 30px;
-    }
+        .direction-card {
+            background: white;
+            padding: 15px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
 
-    .stat-card {
-      flex: 1;
-      min-width: 200px;
-      background: #f8f9fa;
-      padding: 20px;
-      border-radius: 8px;
-      border-left: 4px solid #1976D2;
-      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    }
+        .direction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-    .stat-number {
-      font-size: 2.5em;
-      font-weight: bold;
-      color: #1976D2;
-      margin-bottom: 5px;
-    }
+        .direction-name {
+            font-weight: bold;
+            color: #333;
+            font-size: 1rem;
+        }
 
-    .stat-label {
-      color: #666;
-      font-size: 0.9em;
-    }
+        .direction-count {
+            background: #444;
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 0.85em;
+        }
 
-    .directions-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-      gap: 15px;
-      margin-top: 20px;
-    }
+        .direction-langs {
+            color: #666;
+            font-size: 0.85em;
+            margin-bottom: 10px;
+            line-height: 1.4;
+        }
 
-    .direction-card {
-      background: #f8f9fa;
-      padding: 15px;
-      border-radius: 6px;
-      border: 1px solid #ddd;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
+        .progress-bar {
+            height: 5px;
+            background: #e0e0e0;
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 8px;
+        }
 
-    .direction-card:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    }
+        .progress-fill {
+            height: 100%;
+            background: #777;
+            border-radius: 3px;
+        }
 
-    .direction-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 10px;
-    }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+            font-size: 1.1rem;
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            margin: 20px 0;
+        }
 
-    .direction-name {
-      font-weight: bold;
-      color: #333;
-    }
+        .group-card {
+            background: white;
+            padding: 20px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            border: 1px solid #ccc;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        }
 
-    .direction-count {
-      background: #1976D2;
-      color: white;
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 0.9em;
-    }
+        .group-name {
+            font-weight: bold;
+            color: #444;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 8px;
+        }
 
-    .direction-langs {
-      color: #666;
-      font-size: 0.9em;
-      margin-bottom: 8px;
-    }
+        h2 {
+            color: #444;
+            margin: 40px 0 20px 0;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #ccc;
+            font-size: 1.4rem;
+        }
 
-    .progress-bar {
-      height: 8px;
-      background: #e0e0e0;
-      border-radius: 4px;
-      overflow: hidden;
-      margin-top: 8px;
-    }
+        h3 {
+            color: #444;
+            margin: 30px 0 15px 0;
+            font-size: 1.2rem;
+        }
 
-    .progress-fill {
-      height: 100%;
-      background: #4CAF50;
-      border-radius: 4px;
-      transition: width 0.3s;
-    }
+        @media (max-width: 768px) {
+            body {
+                padding: 20% 5% !important;
+            }
 
-    .loading {
-      text-align: center;
-      padding: 40px;
-      color: #666;
-    }
+            .container {
+                width: 100%;
+                max-width: 100%;
+                padding: 0;
+            }
 
-    .footer {
-      margin-top: 40px;
-      padding-top: 20px;
-      border-top: 1px solid #ddd;
-      text-align: center;
-      color: #666;
-      font-size: 0.9em;
-    }
+            h1 {
+                font-size: 24px;
+                margin-bottom: 20px;
+                padding-bottom: 15px;
+            }
 
-    .footer a {
-      color: #1976D2;
-      text-decoration: none;
-      margin: 0 10px;
-    }
+            h2 {
+                font-size: 1.3rem;
+                margin: 30px 0 15px 0;
+            }
 
-    .footer a:hover {
-      text-decoration: underline;
-    }
+            h3 {
+                font-size: 1.1rem;
+                margin: 25px 0 12px 0;
+            }
 
-    .language-groups {
-      margin-top: 30px;
-    }
+            .directions-grid {
+                grid-template-columns: 1fr !important;
+                gap: 12px;
+                margin-top: 10px;
+                margin-bottom: 30px;
+            }
 
-    .group-card {
-      background: #f0f7ff;
-      padding: 15px;
-      border-radius: 6px;
-      margin-bottom: 15px;
-      border-left: 4px solid #2196F3;
-    }
+            .stat-card {
+                min-width: calc(50% - 6px) !important;
+                padding: 15px;
+            }
 
-    .group-name {
-      font-weight: bold;
-      color: #1976D2;
-      margin-bottom: 10px;
-      font-size: 1.1em;
-    }
+            .stats-container {
+                gap: 12px;
+                margin-bottom: 30px;
+            }
 
-    @media (max-width: 768px) {
-      .directions-grid {
-        grid-template-columns: 1fr;
-      }
-      
-      .stat-card {
-        min-width: 100%;
-      }
-    }
-  </style>
+            .stat-number {
+                font-size: 1.8em;
+            }
+
+            .loading {
+                padding: 30px 15px;
+                margin: 15px 0;
+                font-size: 1rem;
+            }
+
+            .group-card {
+                padding: 15px;
+                margin-bottom: 15px;
+            }
+
+            .group-name {
+                font-size: 1rem;
+            }
+
+            .direction-name {
+                font-size: 0.95rem;
+                word-break: break-word;
+            }
+
+            .stats-section {
+                margin-bottom: 30px;
+            }
+
+            footer {
+                margin: 0.5rem !important;
+                padding: 0.5rem 0 !important;
+                font-size: 0.9rem !important;
+            }
+
+            .footer-content p {
+                font-size: 0.9rem;
+                line-height: 1.4;
+            }
+
+            .back-link {
+                display: block;
+                margin-bottom: 15px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 15% 4% !important;
+            }
+
+            h1 {
+                font-size: 22px;
+                margin-bottom: 15px;
+            }
+
+            .stat-card {
+                padding: 12px;
+            }
+
+            .stats-container {
+                gap: 10px;
+            }
+
+            .stat-number {
+                font-size: 1.6em;
+            }
+
+            .stat-label {
+                font-size: 0.85em;
+            }
+
+            .direction-card {
+                padding: 12px;
+            }
+
+            .direction-name {
+                font-size: 0.9rem;
+            }
+
+            .direction-count {
+                font-size: 0.8em;
+                padding: 2px 6px;
+            }
+
+            .group-card {
+                padding: 12px;
+            }
+
+            h2 {
+                font-size: 1.2rem;
+                margin: 25px 0 12px 0;
+            }
+
+            h3 {
+                font-size: 1rem;
+                margin: 20px 0 10px 0;
+            }
+
+            footer {
+                margin: 0.3rem !important;
+                padding: 0.3rem 0 !important;
+                font-size: 0.85rem !important;
+            }
+
+            .footer-content p {
+                font-size: 0.85rem;
+            }
+
+            .footer-content a {
+                display: inline-block;
+                margin: 0 5px 5px 0;
+            }
+        }
+
+        @media (max-width: 320px) {
+            body {
+                padding: 10% 3% !important;
+            }
+
+            h1 {
+                font-size: 20px;
+            }
+
+            .stat-number {
+                font-size: 1.4em;
+            }
+
+            .direction-name {
+                font-size: 0.85rem;
+            }
+
+            .footer-content a {
+                display: block;
+                margin: 5px 0;
+            }
+        }
+    </style>
 </head>
 
 <body>
-  <div class="container">
-    <h1><a href="index.html">Open Dictionary of Uralic languages</a></h1>
-    
-    <a href="index.html" class="back-link">← Back to dictionary</a>
-    
-    <h2>Statistics</h2>
-    
-    <div id="loading" class="loading">Loading statistics...</div>
-    
-    <div id="stats-content" style="display: none;">
-      <div class="stats-container">
-        <div class="stat-card">
-          <div class="stat-number" id="total-articles">0</div>
-          <div class="stat-label">Total Articles</div>
+    <div class="container">
+        <h1><a href="index.html">✸&ensp;Open Dictionary of Uralic languages</a></h1>
+
+        <a href="index.html" class="back-link">← Back to dictionary</a>
+
+        <h2>Statistics</h2>
+
+        <div id="loading" class="loading">Loading statistics...</div>
+
+        <div id="stats-content" style="display: none;">
+            <div class="stats-section">
+                <div class="stats-container">
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-articles">0</div>
+                        <div class="stat-label">Total Articles</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-directions">0</div>
+                        <div class="stat-label">Language Directions</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-number" id="total-languages">0</div>
+                        <div class="stat-label">Unique Languages</div>
+                    </div>
+
+                    <div class="stat-card">
+                        <div class="stat-number" id="avg-articles">0</div>
+                        <div class="stat-label">Avg. Articles per Direction</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="stats-section">
+                <h3>Articles by Language Direction</h3>
+                <div id="directions-container" class="directions-grid"></div>
+            </div>
+
+            <div class="stats-section">
+                <h3>Articles by Language Family</h3>
+                <div id="families-container"></div>
+            </div>
         </div>
-        
-        <div class="stat-card">
-          <div class="stat-number" id="total-directions">0</div>
-          <div class="stat-label">Language Directions</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-number" id="total-languages">0</div>
-          <div class="stat-label">Unique Languages</div>
-        </div>
-        
-        <div class="stat-card">
-          <div class="stat-number" id="avg-articles">0</div>
-          <div class="stat-label">Avg. Articles per Direction</div>
-        </div>
-      </div>
-      
-      <h3>Articles by Language Direction</h3>
-      <div id="directions-container" class="directions-grid"></div>
-      
-      <h3>Articles by Language Family</h3>
-      <div id="families-container"></div>
+
+        <footer>
+            <div class="footer-content">
+                <p>© 2025 Open Dictionary of Uralic languages</p>
+                <p>
+                    <a href="about.html">About this project</a> |
+                    <a href="contribute.html">How to contribute</a> |
+                    <a href="log.html">Change Log</a>
+                </p>
+            </div>
+        </footer>
     </div>
-    
-    <div class="footer">
-      <p>© 2025 Open Dictionary of Uralic languages</p>
-      <p>
-        <a href="index.html">Dictionary</a> | 
-        <a href="about.html">About</a> | 
-        <a href="contribute.html">Contribute</a> |
-        <a href="log.html">Change Log</a>
-      </p>
-    </div>
-  </div>
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyA3D_wCMyR65nTT_WHpPjn4HvEsLA6RANc",
-      authDomain: "dict-multilingual.firebaseapp.com",
-      databaseURL: "https://dict-multilingual-default-rtdb.firebaseio.com",
-      projectId: "dict-multilingual",
-      storageBucket: "dict-multilingual.appspot.com",
-      messagingSenderId: "330095453001",
-      appId: "1:330095453001:web:4166435a9d2653cc23f098"
-    };
+    <script>
+        const firebaseConfig = {
+            apiKey: "AIzaSyA3D_wCMyR65nTT_WHpPjn4HvEsLA6RANc",
+            authDomain: "dict-multilingual.firebaseapp.com",
+            databaseURL: "https://dict-multilingual-default-rtdb.firebaseio.com",
+            projectId: "dict-multilingual",
+            storageBucket: "dict-multilingual.appspot.com",
+            messagingSenderId: "330095453001",
+            appId: "1:330095453001:web:4166435a9d2653cc23f098"
+        };
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
 
-    const languageGroups = {
-      "Finnic": ["estonian", "finnish", "ingrian", "karelian", "livonian", "ludic", "south_estonian", "veps", "votic"],
-      "Mordvinic": ["erzya", "moksha"],
-      "Mari": ["eastern_meadow_mari", "hill_mari", "northwestern_mari"],
-      "Permic": ["komi_permyak", "komi_yodzyak", "komi_zyryan", "udmurt"],
-      "Magyar": ["hungarian"],
-      "Ob-Ugric": ["atlym_nizyam_khanty", "eastern_khanty", "eastern_mansi", "northern_khanty", "northern_mansi", "salym_khanty", "southern_mansi", "western_mansi"],
-      "Samoyedic": ["enets", "forest_nenets", "nganasan", "selkup", "tundra_nenets"],
-      "Non-Uralic": ["english", "german", "russian"]
-    };
+        const languageGroups = {
+            "Finnic": ["estonian", "finnish", "ingrian", "karelian", "livonian", "ludic", "south_estonian", "veps",
+                "votic"
+            ],
+            "Mordvinic": ["erzya", "moksha"],
+            "Mari": ["eastern_meadow_mari", "hill_mari", "northwestern_mari"],
+            "Permic": ["komi_permyak", "komi_yodzyak", "komi_zyryan", "udmurt"],
+            "Magyar": ["hungarian"],
+            "Ob-Ugric": ["atlym_nizyam_khanty", "eastern_khanty", "eastern_mansi", "northern_khanty",
+                "northern_mansi", "salym_khanty", "southern_mansi", "western_mansi"
+            ],
+            "Samoyedic": ["enets", "forest_nenets", "nganasan", "selkup", "tundra_nenets"],
+            "Non-Uralic": ["english", "german", "russian"]
+        };
 
-    const languageNames = {
-      "estonian": "Estonian",
-      "finnish": "Finnish",
-      "ingrian": "Ingrian",
-      "karelian": "Karelian",
-      "livonian": "Livonian",
-      "ludic": "Ludic",
-      "south_estonian": "South Estonian",
-      "veps": "Veps",
-      "votic": "Votic",
-      "erzya": "Erzya",
-      "moksha": "Moksha",
-      "eastern_meadow_mari": "Eastern-Meadow Mari",
-      "hill_mari": "Hill Mari",
-      "northwestern_mari": "Northwestern Mari",
-      "komi_permyak": "Komi-Permyak",
-      "komi_yodzyak": "Komi-Yodzyak",
-      "komi_zyryan": "Komi-Zyryan",
-      "udmurt": "Udmurt",
-      "hungarian": "Hungarian",
-      "atlym_nizyam_khanty": "Atlym-Nizyam Khanty",
-      "eastern_khanty": "Eastern Khanty",
-      "eastern_mansi": "Eastern Mansi",
-      "northern_khanty": "Northern Khanty",
-      "northern_mansi": "Northern Mansi",
-      "salym_khanty": "Salym Khanty",
-      "southern_mansi": "Southern Mansi",
-      "western_mansi": "Western Mansi",
-      "enets": "Enets",
-      "forest_nenets": "Forest Nenets",
-      "nganasan": "Nganasan",
-      "selkup": "Selkup",
-      "tundra_nenets": "Tundra Nenets",
-      "english": "English",
-      "german": "German",
-      "russian": "Russian"
-    };
+        const languageNames = {
+            "estonian": "Estonian",
+            "finnish": "Finnish",
+            "ingrian": "Ingrian",
+            "karelian": "Karelian",
+            "livonian": "Livonian",
+            "ludic": "Ludic",
+            "south_estonian": "South Estonian",
+            "veps": "Veps",
+            "votic": "Votic",
+            "erzya": "Erzya",
+            "moksha": "Moksha",
+            "eastern_meadow_mari": "Eastern-Meadow Mari",
+            "hill_mari": "Hill Mari",
+            "northwestern_mari": "Northwestern Mari",
+            "komi_permyak": "Komi-Permyak",
+            "komi_yodzyak": "Komi-Yodzyak",
+            "komi_zyryan": "Komi-Zyryan",
+            "udmurt": "Udmurt",
+            "hungarian": "Hungarian",
+            "atlym_nizyam_khanty": "Atlym-Nizyam Khanty",
+            "eastern_khanty": "Eastern Khanty",
+            "eastern_mansi": "Eastern Mansi",
+            "northern_khanty": "Northern Khanty",
+            "northern_mansi": "Northern Mansi",
+            "salym_khanty": "Salym Khanty",
+            "southern_mansi": "Southern Mansi",
+            "western_mansi": "Western Mansi",
+            "enets": "Enets",
+            "forest_nenets": "Forest Nenets",
+            "nganasan": "Nganasan",
+            "selkup": "Selkup",
+            "tundra_nenets": "Tundra Nenets",
+            "english": "English",
+            "german": "German",
+            "russian": "Russian"
+        };
 
-    function loadStatistics() {
-      db.ref('dictionary').once('value', snapshot => {
-        const data = snapshot.val();
-        let totalArticles = 0;
-        const directionStats = [];
-        const languageSet = new Set();
-        const familyStats = {};
-        
-        Object.keys(languageGroups).forEach(family => {
-          familyStats[family] = { total: 0, directions: {} };
-        });
-        
-        if (data) {
-          Object.keys(data).forEach(direction => {
-            const articles = data[direction];
-            const articleCount = articles ? Object.keys(articles).length : 0;
-            
-            if (articleCount > 0) {
-              totalArticles += articleCount;
-              const [fromLang, toLang] = direction.split('_');
-              
-              directionStats.push({
-                direction,
-                fromLang,
-                toLang,
-                count: articleCount
-              });
-              
-              languageSet.add(fromLang);
-              languageSet.add(toLang);
-              
-              Object.keys(languageGroups).forEach(family => {
-                if (languageGroups[family].includes(fromLang) || languageGroups[family].includes(toLang)) {
-                  if (!familyStats[family].directions[direction]) {
-                    familyStats[family].directions[direction] = articleCount;
-                    familyStats[family].total += articleCount;
-                  }
+        function loadStatistics() {
+            db.ref('dictionary').once('value', snapshot => {
+                const data = snapshot.val();
+                let totalArticles = 0;
+                const directionStats = [];
+                const languageSet = new Set();
+                const familyStats = {};
+
+                Object.keys(languageGroups).forEach(family => {
+                    familyStats[family] = {
+                        total: 0,
+                        directions: {}
+                    };
+                });
+
+                if (data) {
+                    Object.keys(data).forEach(direction => {
+                        const articles = data[direction];
+                        const articleCount = articles ? Object.keys(articles).length : 0;
+
+                        if (articleCount > 0) {
+                            totalArticles += articleCount;
+                            const [fromLang, toLang] = direction.split('_');
+
+                            directionStats.push({
+                                direction,
+                                fromLang,
+                                toLang,
+                                count: articleCount
+                            });
+
+                            languageSet.add(fromLang);
+                            languageSet.add(toLang);
+
+                            Object.keys(languageGroups).forEach(family => {
+                                if (languageGroups[family].includes(fromLang) || languageGroups[
+                                        family].includes(toLang)) {
+                                    if (!familyStats[family].directions[direction]) {
+                                        familyStats[family].directions[direction] =
+                                        articleCount;
+                                        familyStats[family].total += articleCount;
+                                    }
+                                }
+                            });
+                        }
+                    });
                 }
-              });
-            }
-          });
-        }
-        
-        directionStats.sort((a, b) => b.count - a.count);
-        
-        displayStatistics(totalArticles, directionStats, languageSet.size, familyStats);
-      });
-    }
 
-    function displayStatistics(totalArticles, directionStats, uniqueLanguages, familyStats) {
-      document.getElementById('loading').style.display = 'none';
-      document.getElementById('stats-content').style.display = 'block';
-      
-      document.getElementById('total-articles').textContent = totalArticles;
-      document.getElementById('total-directions').textContent = directionStats.length;
-      document.getElementById('total-languages').textContent = uniqueLanguages;
-      document.getElementById('avg-articles').textContent = directionStats.length > 0 ? 
-        Math.round(totalArticles / directionStats.length) : 0;
-      
-      const directionsContainer = document.getElementById('directions-container');
-      directionsContainer.innerHTML = '';
-      
-      const maxCount = directionStats.length > 0 ? Math.max(...directionStats.map(d => d.count)) : 1;
-      
-      directionStats.forEach(stat => {
-        const directionCard = document.createElement('div');
-        directionCard.className = 'direction-card';
-        
-        const percentage = (stat.count / maxCount) * 100;
-        
-        directionCard.innerHTML = `
+                directionStats.sort((a, b) => b.count - a.count);
+
+                displayStatistics(totalArticles, directionStats, languageSet.size, familyStats);
+            });
+        }
+
+        function displayStatistics(totalArticles, directionStats, uniqueLanguages, familyStats) {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('stats-content').style.display = 'block';
+
+            document.getElementById('total-articles').textContent = totalArticles;
+            document.getElementById('total-directions').textContent = directionStats.length;
+            document.getElementById('total-languages').textContent = uniqueLanguages;
+            document.getElementById('avg-articles').textContent = directionStats.length > 0 ?
+                Math.round(totalArticles / directionStats.length) : 0;
+
+            const directionsContainer = document.getElementById('directions-container');
+            directionsContainer.innerHTML = '';
+
+            const maxCount = directionStats.length > 0 ? Math.max(...directionStats.map(d => d.count)) : 1;
+
+            directionStats.forEach(stat => {
+                const directionCard = document.createElement('div');
+                directionCard.className = 'direction-card';
+
+                const percentage = (stat.count / maxCount) * 100;
+
+                directionCard.innerHTML = `
           <div class="direction-header">
-            <div class="direction-name">${stat.direction.replace('_', ' → ')}</div>
+            <div class="direction-name">${languageNames[stat.fromLang] || stat.fromLang} → ${languageNames[stat.toLang] || stat.toLang}</div>
             <div class="direction-count">${stat.count}</div>
           </div>
           <div class="direction-langs">
-            ${languageNames[stat.fromLang] || stat.fromLang} → ${languageNames[stat.toLang] || stat.toLang}
+            
           </div>
           <div class="progress-bar">
             <div class="progress-fill" style="width: ${percentage}%"></div>
           </div>
         `;
-        
-        directionsContainer.appendChild(directionCard);
-      });
-      
-      const familiesContainer = document.getElementById('families-container');
-      familiesContainer.innerHTML = '';
-      
-      Object.keys(familyStats).forEach(family => {
-        if (familyStats[family].total > 0) {
-          const groupCard = document.createElement('div');
-          groupCard.className = 'group-card';
-          
-          const directionItems = Object.keys(familyStats[family].directions)
-            .sort((a, b) => familyStats[family].directions[b] - familyStats[family].directions[a])
-            .map(dir => `${dir.replace('_', '→')}: ${familyStats[family].directions[dir]}`)
-            .join(', ');
-          
-          groupCard.innerHTML = `
+
+                directionsContainer.appendChild(directionCard);
+            });
+
+            const familiesContainer = document.getElementById('families-container');
+            familiesContainer.innerHTML = '';
+
+            Object.keys(familyStats).forEach(family => {
+                if (familyStats[family].total > 0) {
+                    const groupCard = document.createElement('div');
+                    groupCard.className = 'group-card';
+
+                    const directionItems = Object.keys(familyStats[family].directions)
+                        .sort((a, b) => familyStats[family].directions[b] - familyStats[family].directions[a])
+                        .map(dir => {
+                            const [from, to] = dir.split('_');
+                            const fromName = languageNames[from] || from;
+                            const toName = languageNames[to] || to;
+                            return `${fromName}→${toName}: ${familyStats[family].directions[dir]}`;
+                        })
+                        .join(', ');
+
+                    groupCard.innerHTML = `
             <div class="group-name">${family}</div>
             <div><strong>Total articles:</strong> ${familyStats[family].total}</div>
             <div><strong>Directions:</strong> ${directionItems}</div>
           `;
-          
-          familiesContainer.appendChild(groupCard);
-        }
-      });
-    }
 
-    loadStatistics();
-  </script>
+                    familiesContainer.appendChild(groupCard);
+                }
+            });
+        }
+
+        loadStatistics();
+
+        function createFixedBackground() {
+            const bgImg = document.createElement("img");
+            bgImg.src = 'ML60238KY_2571.jpg';
+            bgImg.style.position = 'fixed';
+            bgImg.style.top = '0';
+            bgImg.style.left = '0';
+            bgImg.style.width = '100vw';
+            bgImg.style.height = '100vh';
+            bgImg.style.objectFit = 'cover';
+            bgImg.style.objectPosition = 'center';
+            bgImg.style.opacity = '0.2';
+            bgImg.style.zIndex = '-1';
+            bgImg.style.transform = 'translateZ(0)';
+            bgImg.style.backfaceVisibility = 'hidden';
+            bgImg.style.willChange = 'transform';
+            document.body.prepend(bgImg);
+        }
+
+        createFixedBackground();
+    </script>
 </body>
+
 </html>
