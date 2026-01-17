@@ -581,23 +581,53 @@ function showAddNewForm() {
     return;
   }
 
-  isEditing = false;
-  currentEntryKey = "";
   const searchTerm = searchInput.value.trim();
-  editWord.value = searchTerm || "";
-  editPos.value = "";
-  editTranscription.value = "";
-  translationGroups.innerHTML = "";
-  sourceGroups.innerHTML = "";
-  addTranslationGroup();
-  addSourceGroup();
+  
+  if (!searchTerm) {
+    isEditing = false;
+    currentEntryKey = "";
+    editWord.value = "";
+    editPos.value = "";
+    editTranscription.value = "";
+    translationGroups.innerHTML = "";
+    sourceGroups.innerHTML = "";
+    addTranslationGroup();
+    addSourceGroup();
 
-  entryDiv.style.display = "none";
-  editForm.style.display = "block";
-
-  if (searchTerm) {
-    editTranscription.focus();
+    entryDiv.style.display = "none";
+    editForm.style.display = "block";
+    return;
   }
+
+  const direction = `${currentFromLang}_${currentToLang}`;
+  const ref = database.ref(`dictionary/${direction}`);
+
+  ref.orderByChild("word")
+    .equalTo(searchTerm)
+    .once("value", (snapshot) => {
+      if (snapshot.exists()) {
+        const key = Object.keys(snapshot.val())[0];
+        
+        loadEntry(key);
+        
+        setTimeout(() => {
+          alert(`"${searchTerm}" already exists in the database. The existing entry is displayed.`);
+        }, 100);
+      } else {
+        isEditing = false;
+        currentEntryKey = "";
+        editWord.value = searchTerm;
+        editPos.value = "";
+        editTranscription.value = "";
+        translationGroups.innerHTML = "";
+        sourceGroups.innerHTML = "";
+        addTranslationGroup();
+        addSourceGroup();
+
+        entryDiv.style.display = "none";
+        editForm.style.display = "block";
+      }
+    });
 }
 
 function showEditForm(entry) {
