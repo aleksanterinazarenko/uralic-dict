@@ -423,14 +423,10 @@ function performSearch() {
           const key = Object.keys(snapshot.val())[0];
           loadEntry(key);
         } else {
-          entryDiv.style.display = "none";
-          editForm.style.display = "none";
           alert("No entries match your search.");
         }
       },
       (error) => {
-        entryDiv.style.display = "none";
-        editForm.style.display = "none";
         alert("No entries match your search.");
       }
     );
