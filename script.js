@@ -777,7 +777,17 @@ function saveEntry() {
       ref.orderByChild("word")
         .equalTo(word)
         .once("value", (snapshot) => {
-          resolve(snapshot.exists());
+          if (snapshot.exists()) {
+            const existingKey = Object.keys(snapshot.val())[0];
+            
+            if (isEditing && existingKey === currentEntryKey) {
+              resolve(false);
+            } else {
+              resolve(true);
+            }
+          } else {
+            resolve(false);
+          }
         });
     });
   };
@@ -836,6 +846,7 @@ function saveEntry() {
       transcription: editTranscription.value.trim().replace(/\s*,\s*/g, ",") || null,
       translations,
       sources: sources.length ? sources : null,
+      lastEdited: Date.now()
     };
 
     if (isEditing) {

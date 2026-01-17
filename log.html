@@ -1,148 +1,135 @@
 <!DOCTYPE html>
 <html>
+
 <head>
-  <title>Dictionary Change Monitor</title>
+  <title>Dictionary Change Log</title>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
   <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
   <style>
-body {
-  font-family: Arial, sans-serif;
-  margin: 20px;
-}
+    body {
+      font-family: Arial, sans-serif;
+      margin: 20px;
+    }
 
-#loading {
-  padding: 20px;
-  text-align: center;
-}
+    #loading {
+      padding: 20px;
+      text-align: center;
+    }
 
-.controls {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 20px;
-  padding: 10px;
-  background: #f5f5f5;
-  border-radius: 4px;
-}
+    .controls {
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #f5f5f5;
+      border-radius: 4px;
+    }
 
-.pagination {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-}
+    .log-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      min-height: 70vh;
+      padding: 8px;
+      border: 1px solid #eee;
+      border-radius: 4px;
+      background: #fafafa;
+    }
 
-.pagination button {
-  padding: 5px 10px;
-  cursor: pointer;
-  background: #1976D2;
-  color: white;
-  border: none;
-  border-radius: 4px;
-}
+    .log-entry {
+      border-left: 4px solid #ddd;
+      padding: 12px;
+      background: white;
+      box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+      border-radius: 0 4px 4px 0;
+    }
 
-.pagination button:disabled {
-  background: #ccc;
-  cursor: not-allowed;
-}
+    .log-header {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 8px;
+      font-size: 0.9em;
+    }
 
-.page-info {
-  font-weight: bold;
-}
+    .log-path {
+      font-weight: bold;
+      color: #1976D2;
+    }
 
-.log-container {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  min-height: 70vh;
-  padding: 8px;
-  border: 1px solid #eee;
-  border-radius: 4px;
-  background: #fafafa;
-}
+    .log-time {
+      color: #666;
+      font-size: 0.8em;
+    }
 
-.log-entry {
-  border-left: 4px solid #ddd;
-  padding: 12px;
-  background: white;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-  border-radius: 0 4px 4px 0;
-}
+    .article-header {
+      background: #e3f2fd;
+      padding: 8px 12px;
+      border-radius: 4px;
+      margin-bottom: 8px;
+      font-weight: bold;
+    }
 
-.log-header {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 8px;
-  font-size: 0.9em;
-}
+    .article-content {
+      margin-top: 8px;
+      font-size: 0.95em;
+    }
 
-.log-path {
-  font-weight: bold;
-  color: #1976D2;
-}
+    .field {
+      margin-bottom: 6px;
+      padding: 4px 0;
+      border-bottom: 1px solid #eee;
+    }
 
-.log-time {
-  color: #666;
-  font-size: 0.8em;
-}
+    .field:last-child {
+      border-bottom: none;
+    }
 
-.log-diff {
-  margin-top: 8px;
-  padding-left: 12px;
-}
+    .field-label {
+      font-weight: bold;
+      color: #333;
+      display: inline-block;
+      min-width: 120px;
+    }
 
-.diff-item {
-  margin: 4px 0;
-  padding: 4px;
-  border-radius: 3px;
-}
+    .field-value {
+      color: #555;
+    }
 
-.added {
-  background-color: #E8F5E9;
-  border-left: 3px solid #4CAF50;
-}
+    .empty-state {
+      text-align: center;
+      padding: 40px;
+      color: #666;
+    }
 
-.removed {
-  background-color: #FFEBEE;
-  border-left: 3px solid #F44336;
-  text-decoration: line-through;
-}
+    input {
+      padding: 5px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      min-width: 300px;
+    }
 
-.changed {
-  background-color: #FFF3E0;
-  border-left: 3px solid #FF9800;
-}
+    button {
+      padding: 5px 10px;
+      background: #1976D2;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
 
-.key {
-  font-weight: bold;
-  color: #333;
-}
-
-.value {
-  margin-left: 4px;
-}
-
-.filter-controls input {
-  padding: 5px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  min-width: 300px;
-}
+    button:hover {
+      background: #1565C0;
+    }
   </style>
 </head>
+
 <body>
-  <h1>Dictionary Change Monitor</h1>
+  <h1>Dictionary Change Log</h1>
   <div id="loading">Loading...</div>
-  
+
   <div class="controls">
-    <div class="filter-controls">
-      <input type="text" id="path-filter" placeholder="Filter by path...">
-    </div>
-    <div class="pagination">
-      <button id="prev-page" disabled>Previous</button>
-      <span class="page-info">Page <span id="current-page">1</span> of <span id="total-pages">1</span></span>
-      <button id="next-page" disabled>Next</button>
-    </div>
+    <input type="text" id="filter-input" placeholder="Filter by language direction or word...">
+    <button id="clear-filter">Clear</button>
   </div>
-  
+
   <div id="log-container" class="log-container"></div>
 
   <script>
@@ -159,175 +146,136 @@ body {
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
     const logContainer = document.getElementById('log-container');
-    let isLoading = true;
-    let previousData = {};
-    const itemsPerPage = 20;
-    let currentPage = 1;
-    let totalPages = 1;
-    let allLogEntries = [];
-    let filteredLogEntries = [];
-    const prevPageBtn = document.getElementById('prev-page');
-    const nextPageBtn = document.getElementById('next-page');
-    const currentPageSpan = document.getElementById('current-page');
-    const totalPagesSpan = document.getElementById('total-pages');
-    const pathFilterInput = document.getElementById('path-filter');
-
-    function createLogEntry(path, timestamp) {
-      const entry = document.createElement('div');
-      entry.className = 'log-entry';
-      const timeString = new Date(timestamp).toLocaleString();
-      entry.innerHTML = `
-        <div class="log-header">
-          <span class="log-path">${path.replace('dictionary/', '')}</span>
-          <span class="log-time">${timeString}</span>
-        </div>
-        <div class="log-diff"></div>
-      `;
-      return {
-        element: entry,
-        diffContainer: entry.querySelector('.log-diff'),
-        path: path,
-        timestamp: timestamp
-      };
-    }
+    const filterInput = document.getElementById('filter-input');
+    const clearFilterBtn = document.getElementById('clear-filter');
+    let allArticles = [];
 
     function formatValue(value) {
-      if (value === null) return 'null';
-      if (value === undefined) return 'undefined';
+      if (value === null || value === undefined) return '';
       if (typeof value === 'object') return JSON.stringify(value, null, 2);
       return value.toString();
     }
 
-    function getObjectDiff(oldObj = {}, newObj = {}) {
-      const diff = {};
-      const allKeys = new Set([...Object.keys(oldObj || {}), ...Object.keys(newObj || {})]);
-      allKeys.forEach(key => {
-        if (!(key in newObj)) {
-          diff[key] = { type: 'removed', value: oldObj[key] };
-        } else if (!(key in oldObj)) {
-          diff[key] = { type: 'added', value: newObj[key] };
-        } else if (JSON.stringify(oldObj[key]) !== JSON.stringify(newObj[key])) {
-          if (typeof oldObj[key] === 'object' && typeof newObj[key] === 'object' && oldObj[key] !== null && newObj[key] !== null) {
-            diff[key] = { type: 'changed', diff: getObjectDiff(oldObj[key], newObj[key]) };
-          } else {
-            diff[key] = { type: 'changed', old: oldObj[key], new: newObj[key] };
-          }
+    function formatTranslations(translations) {
+      if (!translations || !Array.isArray(translations)) return '';
+      
+      return translations.map((trans, index) => {
+        let result = `${index + 1}. ${trans.meaning}`;
+        if (trans.label) result += ` (${trans.label})`;
+        if (trans.examples && trans.examples.length > 0) {
+          result += ' - Examples: ' + trans.examples.map(ex => `${ex.source} → ${ex.target}`).join('; ');
         }
-      });
-      return diff;
+        return result;
+      }).join('<br>');
     }
 
-    function renderObjectDiff(container, diff, level = 0) {
-      Object.entries(diff).forEach(([key, change]) => {
-        const item = document.createElement('div');
-        item.className = `diff-item ${change.type}`;
-        item.style.marginLeft = `${level * 12}px`;
-        if (change.type === 'added' || change.type === 'removed') {
-          item.innerHTML = `<span class="key">${key}:</span> <span class="value">${formatValue(change.value)}</span>`;
-          container.appendChild(item);
-        } else if (change.type === 'changed') {
-          if (change.diff) {
-            const nestedContainer = document.createElement('div');
-            nestedContainer.className = 'nested';
-            renderObjectDiff(nestedContainer, change.diff, level + 1);
-            item.innerHTML = `<span class="key">${key}:</span>`;
-            container.appendChild(item);
-            container.appendChild(nestedContainer);
-          } else {
-            item.innerHTML = `<span class="key">${key}:</span>
-              <span class="value"><span style="color:#F44336">${formatValue(change.old)}</span> → 
-              <span style="color:#4CAF50">${formatValue(change.new)}</span></span>`;
-            container.appendChild(item);
-          }
-        }
+    function loadAllArticles() {
+      db.ref('dictionary').once('value', snapshot => {
+        allArticles = [];
+        
+        snapshot.forEach(langDirSnapshot => {
+          const direction = langDirSnapshot.key;
+          
+          langDirSnapshot.forEach(articleSnapshot => {
+            const articleId = articleSnapshot.key;
+            const articleData = articleSnapshot.val();
+            
+            if (articleData.lastEdited) {
+              allArticles.push({
+                direction,
+                articleId,
+                data: articleData,
+                lastEdited: articleData.lastEdited
+              });
+            }
+          });
+        });
+        
+        displayArticles();
+        document.getElementById('loading').style.display = 'none';
       });
     }
 
-    function updatePaginationControls() {
-      currentPageSpan.textContent = currentPage;
-      totalPagesSpan.textContent = totalPages;
-      prevPageBtn.disabled = currentPage <= 1;
-      nextPageBtn.disabled = currentPage >= totalPages;
-    }
-
-    function renderCurrentPage() {
+    function displayArticles() {
       logContainer.innerHTML = '';
-      const startIdx = (currentPage - 1) * itemsPerPage;
-      const endIdx = startIdx + itemsPerPage;
-      const entriesToShow = filteredLogEntries.slice(startIdx, endIdx);
-      if (entriesToShow.length === 0) {
-        logContainer.innerHTML = '<div class="log-entry">No changes match the current filters</div>';
+      
+      const filterText = filterInput.value.toLowerCase().trim();
+      
+      let filteredArticles = allArticles.filter(article => {
+        if (!filterText) return true;
+        
+        const word = article.data.word || '';
+        const direction = article.direction || '';
+        
+        return word.toLowerCase().includes(filterText) || 
+               direction.toLowerCase().includes(filterText);
+      });
+      
+      filteredArticles.sort((a, b) => b.lastEdited - a.lastEdited);
+      
+      if (filteredArticles.length === 0) {
+        logContainer.innerHTML = '<div class="empty-state">No articles found</div>';
         return;
       }
-      entriesToShow.forEach(entry => {
-        logContainer.appendChild(entry.element);
+      
+      filteredArticles.forEach(article => {
+        const entry = document.createElement('div');
+        entry.className = 'log-entry';
+        
+        const timeString = new Date(article.lastEdited).toLocaleString();
+        const directionDisplay = article.direction.replace('_', ' → ');
+        
+        entry.innerHTML = `
+          <div class="log-header">
+            <span class="log-path">
+              ${directionDisplay}
+              <span style="color:#666; margin-left: 8px;">${article.data.word || article.articleId}</span>
+            </span>
+            <span class="log-time">${timeString}</span>
+          </div>
+          <div class="article-header">
+            Article: ${directionDisplay} / ${article.data.word || article.articleId}
+          </div>
+          <div class="article-content">
+            <div class="field">
+              <span class="field-label">Word:</span>
+              <span class="field-value">${article.data.word || 'N/A'}</span>
+            </div>
+            ${article.data.pos ? `
+            <div class="field">
+              <span class="field-label">Part of Speech:</span>
+              <span class="field-value">${article.data.pos}</span>
+            </div>` : ''}
+            ${article.data.transcription ? `
+            <div class="field">
+              <span class="field-label">Transcription:</span>
+              <span class="field-value">${article.data.transcription}</span>
+            </div>` : ''}
+            ${article.data.translations ? `
+            <div class="field">
+              <span class="field-label">Translations:</span>
+              <span class="field-value">${formatTranslations(article.data.translations)}</span>
+            </div>` : ''}
+            ${article.data.sources ? `
+            <div class="field">
+              <span class="field-label">Sources:</span>
+              <span class="field-value">${article.data.sources.join(', ')}</span>
+            </div>` : ''}
+          </div>
+        `;
+        
+        logContainer.appendChild(entry);
       });
-      updatePaginationControls();
     }
 
-    function applyFilters() {
-      const pathFilter = pathFilterInput.value.toLowerCase();
-      filteredLogEntries = allLogEntries.filter(entry => {
-        return pathFilter ? entry.path.toLowerCase().includes(pathFilter) : true;
-      });
-      totalPages = Math.max(1, Math.ceil(filteredLogEntries.length / itemsPerPage));
-      currentPage = 1;
-      renderCurrentPage();
-    }
-
-    function handleChange(path, oldData, newData) {
-      const timestamp = Date.now();
-      const logEntry = createLogEntry(path, timestamp);
-      const diff = getObjectDiff(oldData, newData);
-      renderObjectDiff(logEntry.diffContainer, diff);
-      allLogEntries.unshift(logEntry);
-      applyFilters();
-      if (isLoading) {
-        document.getElementById('loading').style.display = 'none';
-        isLoading = false;
-      }
-    }
-
-    function setupDeepListeners(ref, path = 'dictionary') {
-      if (path !== 'dictionary') {
-        ref.on('value', snapshot => {
-          const newData = snapshot.val();
-          const oldData = previousData[path] || {};
-          if (JSON.stringify(oldData) !== JSON.stringify(newData)) {
-            handleChange(path, oldData, newData);
-            previousData[path] = JSON.parse(JSON.stringify(newData || {}));
-          }
-        });
-      }
-      ref.on('child_added', childSnapshot => {
-        const childPath = `${path}/${childSnapshot.key}`;
-        setupDeepListeners(ref.child(childSnapshot.key), childPath);
-      });
-    }
-
-    prevPageBtn.addEventListener('click', () => {
-      if (currentPage > 1) {
-        currentPage--;
-        renderCurrentPage();
-      }
+    filterInput.addEventListener('input', displayArticles);
+    
+    clearFilterBtn.addEventListener('click', () => {
+      filterInput.value = '';
+      displayArticles();
     });
 
-    nextPageBtn.addEventListener('click', () => {
-      if (currentPage < totalPages) {
-        currentPage++;
-        renderCurrentPage();
-      }
-    });
-
-    pathFilterInput.addEventListener('input', applyFilters);
-
-    db.ref('dictionary').once('value', snapshot => {
-      previousData.dictionary = snapshot.val() || {};
-      document.getElementById('loading').style.display = 'none';
-      isLoading = false;
-    });
-
-    setupDeepListeners(db.ref('dictionary'));
+    loadAllArticles();
   </script>
 </body>
 </html>
