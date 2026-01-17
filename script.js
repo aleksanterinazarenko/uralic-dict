@@ -304,9 +304,16 @@ swapBtn.addEventListener("click", () => {
   fromLangSelect.dispatchEvent(new Event('change'));
   toLangSelect.dispatchEvent(new Event('change'));
 
-  if (searchInput.value.trim()) {
-    performSearch();
-  }
+  searchInput.value = "";
+  suggestionsDiv.style.display = "none";
+  
+  entryDiv.style.display = "none";
+  editForm.style.display = "none";
+  
+  const url = new URL(window.location);
+  url.searchParams.delete('direction');
+  url.searchParams.delete('word');
+  window.history.pushState({}, '', url);
 });
 
 function handleSearchInput() {
@@ -390,7 +397,15 @@ function performSearch() {
   }
 
   if (!query) {
-    alert("Please enter a word to search.");
+    entryDiv.style.display = "none";
+    editForm.style.display = "none";
+    suggestionsDiv.style.display = "none";
+    
+    const url = new URL(window.location);
+    url.searchParams.delete('direction');
+    url.searchParams.delete('word');
+    window.history.pushState({}, '', url);
+    
     return;
   }
 
@@ -408,10 +423,14 @@ function performSearch() {
           const key = Object.keys(snapshot.val())[0];
           loadEntry(key);
         } else {
+          entryDiv.style.display = "none";
+          editForm.style.display = "none";
           alert("No entries match your search.");
         }
       },
       (error) => {
+        entryDiv.style.display = "none";
+        editForm.style.display = "none";
         alert("No entries match your search.");
       }
     );
@@ -829,7 +848,7 @@ function addTranslationGroup() {
   const removeTransBtn = document.createElement("button");
   removeTransBtn.className = "remove-translation-btn remove-btn";
   removeTransBtn.textContent = "✖";
-  removeTransBtn.addEventListener("click", function() {
+  removeTransBtn.addEventListener("click", function () {
     if (translationGroups.children.length > 1) {
       group.remove();
     }
@@ -945,23 +964,23 @@ document.addEventListener('DOMContentLoaded', () => {
 function createFixedBackground() {
   const bgImg = document.createElement("img");
   bgImg.src = 'ML60238KY_2571.jpg';
-  
+
   bgImg.style.position = 'fixed';
   bgImg.style.top = '0';
   bgImg.style.left = '0';
   bgImg.style.width = '100vw';
   bgImg.style.height = '100vh';
-  
+
   bgImg.style.objectFit = 'cover';
   bgImg.style.objectPosition = 'center';
-  
+
   bgImg.style.opacity = '0.2';
   bgImg.style.zIndex = '-1';
-  
+
   bgImg.style.transform = 'translateZ(0)';
   bgImg.style.backfaceVisibility = 'hidden';
   bgImg.style.willChange = 'transform';
-  
+
   document.body.prepend(bgImg);
 }
 
